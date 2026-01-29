@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A Shop</title>
+
+  <!-- PayPal SDK -->
+  <script
+    src="https://www.paypal.com/sdk/js?client-id=BAArru4lPw40AgBeFcKuh-8YWfy8S1b_ygAqNp0BdaU6bg-cl_ECaCtJaPKdHR1a42DyYThQxEffGJmE6c&components=hosted-buttons&disable-funding=venmo&currency=EUR">
+  </script>
+
+  <style>
+    :root{
+      --bg0:#05020d;
+      --bg1:#0a0620;
+
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+
+      --p1:#7c3aed;
+      --p2:#a855f7;
+
+      --border: rgba(255,255,255,.12);
+      --border2: rgba(168,85,247,.32);
+
+      --r: 18px;
+      --r2: 26px;
+      --shadow: 0 22px 70px rgba(0,0,0,.45);
+
+      --max: 1120px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+
+      --paypalSafe: 380px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1100px 520px at 18% 0%, rgba(124,58,237,.30), transparent 60%),
+        radial-gradient(1000px 520px at 85% 15%, rgba(168,85,247,.20), transparent 60%),
+        radial-gradient(900px 600px at 50% 110%, rgba(168,85,247,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    .container{ width:min(var(--max), calc(100% - 32px)); margin:0 auto; }
+
+    /* Top strip */
+    .topstrip{
+      position:sticky; top:0; z-index:60;
+      backdrop-filter: blur(14px);
+      background: rgba(6,3,15,.72);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .stripInner{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      padding: 10px 0;
+    }
+    .stripLeft{
+      display:flex; flex-wrap:wrap; gap:14px;
+      font-weight:850; font-size:12.5px;
+      color: rgba(255,255,255,.82);
+    }
+    .stripLeft span{ display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
+    .chipIcon{
+      width:18px;height:18px;border-radius:6px;
+      display:inline-flex;align-items:center;justify-content:center;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      font-style:normal;
+      font-size:12px;
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:900;
+      cursor:pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.09);
+      border-color: rgba(255,255,255,.20);
+    }
+    .btn.primary{
+      border-color: rgba(168,85,247,.55);
+      background: linear-gradient(135deg, rgba(124,58,237,.30), rgba(168,85,247,.20));
+      box-shadow: 0 18px 55px rgba(124,58,237,.14);
+    }
+
+    /* Header */
+    header{ padding: 14px 0 0; }
+    .headerInner{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:950;
+      letter-spacing:-.3px;
+      font-size:18px;
+    }
+    .brandLogo{
+      width:28px; height:28px;
+      border-radius:10px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 12px 40px rgba(124,58,237,.18);
+      display:grid;
+      place-items:center;
+      flex: 0 0 auto;
+    }
+    .brandLogo svg{
+      width:18px;height:18px;opacity:.9;
+    }
+
+    .navLinks{
+      display:flex; gap:10px; align-items:center;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      padding: 6px;
+      border-radius: 999px;
+    }
+    .navLinks a{
+      padding: 9px 14px;
+      border-radius: 999px;
+      color: rgba(255,255,255,.78);
+      font-weight: 950;
+      font-size: 13px;
+    }
+    .navLinks a.active,
+    .navLinks a:hover{
+      color: var(--text);
+      background: rgba(124,58,237,.22);
+      border: 1px solid rgba(168,85,247,.18);
+    }
+
+    /* Hero */
+    .hero{ padding: 16px 0 10px; }
+    .heroCard{
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .heroCard::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(860px 320px at 10% 0%, rgba(124,58,237,.35), transparent 60%),
+        radial-gradient(740px 300px at 90% 10%, rgba(168,85,247,.22), transparent 60%);
+      opacity:.9;
+      pointer-events:none;
+    }
+    .heroInner{
+      position:relative;
+      padding: 18px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items:center;
+    }
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.74);
+    }
+    .kdot{
+      width:9px;height:9px;border-radius:999px;
+      background: var(--p2);
+      box-shadow: 0 0 0 4px rgba(168,85,247,.14);
+    }
+    .heroTitle{
+      margin:0;
+      font-size: clamp(26px, 3.2vw, 40px);
+      letter-spacing:-.9px;
+      line-height:1.05;
+    }
+    .heroSub{
+      margin:0;
+      color: var(--muted);
+      font-weight: 650;
+      line-height: 1.55;
+      font-size: 15px;
+      max-width: 70ch;
+    }
+
+    /* Section head */
+    .sectionHead{
+      padding: 14px 0 10px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .sectionHead h2{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: -.3px;
+    }
+    .catLine{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:flex-end;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.70);
+      font-weight: 850;
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .categoryTag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(168,85,247,.30);
+      background: rgba(124,58,237,.16);
+      color: rgba(255,255,255,.86);
+      font-weight: 950;
+      font-size: 12px;
+      white-space:nowrap;
+    }
+
+    /* SHOP -> GRID propre */
+    .shopWrap{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding-bottom: 8px;
+    }
+
+    /* Card (même hauteur) */
+    .productCard{
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      box-shadow: 0 18px 55px rgba(0,0,0,.25);
+      overflow:hidden;
+      min-height: 520px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* Cadre PayPal interne */
+    .paypalFrame{
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--border2);
+      background:
+        radial-gradient(140px 90px at 25% 15%, rgba(168,85,247,.18), transparent 70%),
+        rgba(6,3,15,.55);
+      box-shadow:
+        0 0 0 1px rgba(124,58,237,.12),
+        0 18px 55px rgba(124,58,237,.18);
+      flex: 1;
+      overflow:hidden;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+    }
+
+    .paypalRail{
+      width: var(--paypalSafe);
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Empêche les assets PayPal (SVG) de casser la card */
+    .paypalRail img{
+      max-width: 100%;
+      height: auto;
+      display:block;
+      margin: 0 auto;
+    }
+
+    /* Petit label catégorie sur chaque card */
+    .cardTopTag{
+      display:flex;
+      justify-content:flex-start;
+      padding: 12px 14px 0;
+    }
+    .cardTopTag span{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(168,85,247,.26);
+      background: rgba(124,58,237,.14);
+      color: rgba(255,255,255,.85);
+      font-weight: 950;
+      font-size: 12px;
+      letter-spacing: .02em;
+      white-space:nowrap;
+    }
+
+    /* FAQ */
+    .faq{
+      margin-top: 6px;
+      border-radius: var(--r2);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+      box-shadow: 0 18px 55px rgba(0,0,0,.25);
+    }
+    details{
+      padding: 14px 14px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.02);
+    }
+    details:first-child{ border-top:0; }
+    summary{ cursor:pointer; font-weight:950; list-style:none; }
+    summary::-webkit-details-marker{ display:none; }
+    details p{
+      margin:10px 0 0;
+      color: var(--muted);
+      font-weight:650;
+      font-size:13px;
+      line-height:1.55;
+    }
+
+    footer{
+      padding: 14px 0 20px;
+      color: rgba(255,255,255,.58);
+      font-weight:650;
+      font-size:12.5px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      border-top: 1px solid rgba(255,255,255,.08);
+      margin-top: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px){
+      .shopWrap{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      :root{ --paypalSafe: 360px; }
+    }
+    @media (max-width: 980px){
+      .navLinks{ display:none; }
+      .sectionHead{ align-items:flex-start; }
+      .catLine{ align-items:flex-start; }
+    }
+    @media (max-width: 720px){
+      .shopWrap{ grid-template-columns: 1fr; }
+      .productCard{ min-height: 0; }
+    }
+    @media (max-width: 420px){
+      :root{ --paypalSafe: 340px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topstrip">
+    <div class="container">
+      <div class="stripInner">
+        <div class="stripLeft">
+          <span><i class="chipIcon">✓</i> Instant Delivery</span>
+          <span><i class="chipIcon">🔒</i> Paiement sécurisé</span>
+          <span><i class="chipIcon">💬</i> Support 24/7</span>
+        </div>
+        <a class="btn primary" href="#gta">SHOP NOW</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="container" id="top">
+    <div class="headerInner">
+      <a class="brand" href="#top">
+        <!-- Logo inline (SVG) => pas besoin d'image dans le dossier -->
+        <span class="brandLogo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2.5l8.5 4.9v9.2L12 21.5 3.5 16.6V7.4L12 2.5Z" stroke="rgba(255,255,255,.85)" stroke-width="1.6"/>
+            <path d="M12 6.2l5.6 3.2v5.2L12 17.8 6.4 14.6V9.4L12 6.2Z" fill="rgba(168,85,247,.22)" stroke="rgba(168,85,247,.55)" stroke-width="1.2"/>
+          </svg>
+        </span>
+        <span>A Shop</span>
+      </a>
+
+      <nav class="navLinks" aria-label="Navigation">
+        <a class="active" href="#top">Home</a>
+        <a href="#gta">GTA V</a>
+        <a href="#vf">Valorant/Fortnite</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="heroCard">
+        <div class="heroInner">
+          <div>
+            <div class="kicker"><span class="kdot"></span> PREMIUM • DARK PURPLE</div>
+            <h1 class="heroTitle">A Shop</h1>
+            <p class="heroSub">Boutique digitale premium. Paiement rapide & sécurisé.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHOP - GTA V -->
+    <section id="gta">
+      <div class="sectionHead">
+        <h2>Shop</h2>
+        <div class="catLine">
+          <span class="pill">4 produits</span>
+          <span class="categoryTag">Catégorie : GTA V</span>
+        </div>
+      </div>
+
+      <div class="shopWrap">
+        <article class="productCard">
+          <div class="cardTopTag"><span>🎮 GTA V</span></div>
+          <div class="paypalFrame"><div class="paypalRail"><div id="paypal-container-redengine"></div></div></div>
+        </article>
+
+        <article class="productCard">
+          <div class="cardTopTag"><span>🎮 GTA V</span></div>
+          <div class="paypalFrame"><div class="paypalRail"><div id="paypal-container-produit2"></div></div></div>
+        </article>
+
+        <article class="productCard">
+          <div class="cardTopTag"><span>🎮 GTA V</span></div>
+          <div class="paypalFrame"><div class="paypalRail"><div id="paypal-container-D7BA95ZDEMRU4"></div></div></div>
+        </article>
+
+        <article class="productCard">
+          <div class="cardTopTag"><span>🎮 GTA V</span></div>
+          <div class="paypalFrame"><div class="paypalRail"><div id="paypal-container-A6M6TMT47XCCY"></div></div></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SHOP - Valorant / Fortnite -->
+    <section id="vf">
+      <div class="sectionHead">
+        <h2>Shop</h2>
+        <div class="catLine">
+          <span class="pill">1 produit</span>
+          <span class="categoryTag">Catégorie : Valorant / Fortnite</span>
+        </div>
+      </div>
+
+      <div class="shopWrap" style="margin-top:0;">
+        <article class="productCard">
+          <div class="cardTopTag"><span>🟣 Valorant / 🟦 Fortnite</span></div>
+          <div class="paypalFrame"><div class="paypalRail"><div id="paypal-container-RCMBW3M2ZYUVA"></div></div></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="sectionHead">
+        <h2>FAQ</h2>
+        <span class="pill">Questions</span>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>Comment je reçois ma commande ?</summary>
+          <p>Après paiement, tu reçois les informations/accès via le canal indiqué par le vendeur.</p>
+        </details>
+        <details>
+          <summary>Le paiement est-il sécurisé ?</summary>
+          <p>Le paiement est traité via PayPal, avec les protections et options proposées par PayPal.</p>
+        </details>
+        <details>
+          <summary>Je peux demander de l’aide si j’ai un souci ?</summary>
+          <p>Oui, contacte le support via les infos en bas de page.</p>
+        </details>
+      </div>
+    </section>
+
+    <footer>
+      <span>© <span id="year"></span> A Shop</span>
+      <span>support@ashop.com</span>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // GTA V
+    paypal.HostedButtons({ hostedButtonId: "GWH6A9XPBGT4C" })
+      .render("#paypal-container-redengine");
+
+    paypal.HostedButtons({ hostedButtonId: "5BBXNUWNEME2G" })
+      .render("#paypal-container-produit2");
+
+    paypal.HostedButtons({ hostedButtonId: "D7BA95ZDEMRU4" })
+      .render("#paypal-container-D7BA95ZDEMRU4");
+
+    paypal.HostedButtons({ hostedButtonId: "A6M6TMT47XCCY" })
+      .render("#paypal-container-A6M6TMT47XCCY");
+
+    // Valorant / Fortnite
+    paypal.HostedButtons({ hostedButtonId: "RCMBW3M2ZYUVA" })
+      .render("#paypal-container-RCMBW3M2ZYUVA");
+  </script>
+</body>
+</html>
